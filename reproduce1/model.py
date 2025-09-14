@@ -22,6 +22,11 @@ class Model:
               n_eval_episodes=5, reward_threshold=None, save_path="./models/"):
         callbacks = []
 
+        # 计算到下一个 cycle 还需要训练多少步（如果已对齐，可以改为训练一个完整 cycle）
+        cycle = total_timesteps
+        remainder = self.model.num_timesteps % cycle
+        train_steps = cycle - remainder if remainder != 0 else cycle
+
         # 定期在测试环境里评估 agent 表现
         if eval_env is not None:
             # 当 agent 平均奖励超过某个阈值时，提前停止训练
@@ -62,8 +67,9 @@ class Model:
 
         callback = CallbackList(callbacks) if callbacks else None
 
+        print(f"这次要训练{train_steps}步")
         self.model.learn(
-            total_timesteps=total_timesteps,
+            total_timesteps=train_steps,
             callback=callback,
             reset_num_timesteps=False,
         )
