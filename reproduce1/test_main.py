@@ -9,10 +9,12 @@ import yaml
 
 # 读取配置文件
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
+# 传递给 正在用的 的模型名称
+model_name = os.environ.get('REWARD_MODEL_NAME', 'unknown')
 
 ## 加载环境和模型
 env = gym.make("highway-fast-v0", max_episode_steps=1000)
-obs, info=env.reset() 
+obs, info = env.reset() 
 
 # 把新写的奖励函数 绑定到当前的env实例上，覆盖掉原来类里的_reward方法
 from reward_function import _reward
@@ -38,7 +40,7 @@ Visualization = Visualization(
 
 ### 创造/覆盖文件 里面写入 测试的奖励函数(之后给ai分析用)
 with open('test_evaluations.txt', 'w') as f:
-    f.write("测试评估结果：\n\n")
+    f.write(f"测试评估结果（模型: {model_name}):\n\n")
 
 ### 测试 强化学习模型
 step_count = 0
@@ -83,9 +85,13 @@ while step_count < max_steps:
     episode_rewards.append(episode_reward)
 
 # 分析奖励组件
+mean_reward = np.mean(total_rewards)
 with open('test_evaluations.txt', 'a') as f:
     f.write(f"\n=== 奖励组件分析 ===\n")
-    f.write(f"总奖励 - 平均: {np.mean(total_rewards):.3f}, 标准差: {np.std(total_rewards):.3f}")
+    f.write(f"总奖励 - 平均: {mean_reward:.3f}, 标准差: {np.std(total_rewards):.3f}")
+
+with open('reward_model_scores.txt', 'a') as score_file:
+    score_file.write(f"{model_name},{mean_reward:.3f}\n")
 
 print("转换完成，内容已写入 test_evaluations.txt")
 

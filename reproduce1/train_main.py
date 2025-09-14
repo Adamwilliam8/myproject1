@@ -102,4 +102,3 @@ with open('train_evaluations.txt', 'w') as f:
 print("------------------------------------------")
 print("转换完成，内容已写入 train_evaluations.txt")
 print("------------------------------------------")
-
