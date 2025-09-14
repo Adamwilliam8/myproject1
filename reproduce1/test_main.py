@@ -11,7 +11,8 @@ import yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 
 ## 加载环境和模型
-env = gym.make("highway-fast-v0", max_episode_steps=1000)
+env = gym.make(OPENAI_CONFIG["ENV_ID"],
+               max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"])
 obs, info=env.reset() 
 
 # 把新写的奖励函数 绑定到当前的env实例上，覆盖掉原来类里的_reward方法
