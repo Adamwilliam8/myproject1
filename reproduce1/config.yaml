@@ -17,7 +17,8 @@ QWEN_ENABLE_THINKING: True       # 是否开启思考模式
 
 ### ENV FILE ADDRESS
 ENV_FILE_ADDRESS: "../HighwayEnv-RL_env/highway_env"  # your path to the all env file
-
+ENV_ID: "highway-v0"
+MAX_EPISODE_STEPS: 1000   # your max episode steps
 
 ### MODEL（YOUR TRAINING MODEL CONFIG）
 MODEL_NAME: "DQN"  # "PPO" or "DQN"

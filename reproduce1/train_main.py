@@ -30,13 +30,15 @@ model_kwargs = OPENAI_CONFIG["MODEL_KWARGS"]  ## 模型参数
 model_kwargs["tensorboard_log"] = model_log_path
 
 ### 把新奖励函数绑定在环境上
-env = gym.make("highway-v0")
+env = gym.make(OPENAI_CONFIG["ENV_ID"],
+               max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"])
 obs, info=env.reset() 
 # 把新写的奖励函数 绑定到当前的env实例上，覆盖掉原来类里的_reward方法
 from reward_function import _reward
 env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
 # 评估环境（带 Monitor 且绑定自定义奖励）
-eval_env = Monitor(gym.make("highway-v0"))
+eval_env = Monitor(gym.make(OPENAI_CONFIG["ENV_ID"],
+               max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"]))
 eval_env._reward = _reward.__get__(eval_env, type(eval_env))
 
 ### 查找最新的检查点
