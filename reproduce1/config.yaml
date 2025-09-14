@@ -1,0 +1,107 @@
+### 如环境变动要自己去环境仓库 看需要导入哪些相关文件
+
+# YOUR LLMs API CONFIG
+### DEEPSEEK
+DEEPSEEK_KEY: "sk-1495882192234e668f470fba3e39f9ce"
+DEEPSEEK_MODEL: "deepseek-reasoner"
+DEEPSEEK_BASE_URL: "https://api.deepseek.com"
+DEEPSEEK_MAX_TOKENS: 64000       # 8192 最大输出tokens
+DEEPSEEK_TEMPERATURE: 0.3        # reasoner用不了温度
+### qwen
+QWEN_KEY: "sk-1c71165453eb4ad192753babda9bffe0"
+QWEN_MODEL: "qwen3-coder-plus"
+QWEN_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+QWEN_MAX_INPUT_TOKENS: 997,952   # 最大输入tokens
+QWEN_MAX_TOKENS: 65,536          # 最大输出tokens
+QWEN_ENABLE_THINKING: True       # 是否开启思考模式
+
+### ENV FILE ADDRESS
+ENV_FILE_ADDRESS: "../HighwayEnv-RL_env/highway_env"  # your path to the all env file
+
+
+### MODEL（YOUR TRAINING MODEL CONFIG）
+MODEL_NAME: "DQN"  # "PPO" or "DQN"
+MODEL_POLICY: "MlpPolicy"  # "MlpPolicy" or "CnnPolicy"
+MODEL_KWARGS: 
+    "policy_kwargs": 
+        net_arch: [256, 256]
+    "learning_rate": 0.0005   # 5e-4
+    "buffer_size": 15000
+    "learning_starts": 200
+    "batch_size": 32
+    "gamma": 0.8
+    "tau": 1.0
+    "train_freq": 1
+    "gradient_steps": 1
+    "target_update_interval": 50
+    "exploration_fraction": 0.1      # 探索衰减比例，前10%的训练时间内从ε_initial衰减到ε_final
+    "exploration_initial_eps": 1.0   # 初始探索率，开始时100%随机选择动作
+    "exploration_final_eps": 0.02    # 最终探索率，训练后期仍保持2%的随机性
+    "max_grad_norm": 0.5              # 梯度裁剪(?>0.5->?==0.5)
+    "verbose": 1
+    "tensorboard_log": "../reproduce1/highway_dqn/"
+
+
+reward_threshold: 9000  # your reward threshold
+cycle_number: 10  # your cycle number
+every_cycle_timesteps: 200000  # total_timesteps/cycle number
+eval_freq: 10000   # your eval freq and save model frequency 
+n_eval_episodes: 5    # your n eval episodes   5
+
+tensorboard_log_path: "../reproduce1/highway_dqn/"  # your model save path
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### WASTE SPACE
+LLM_TOOLS:    ## 定义LLM用到 读取文件的工具
+    -   "type": "function"
+        "function": 
+            "name": "read_file"
+            "description": "Read the contents of a local file"
+            "parameters": 
+                "type": "object"
+                "properties": 
+                    "path": 
+                        "type": "string"
+                        "enum":   # 只允许调用这些文件
+                            - "../HighwayEnv-RL_env/highway_env/envs/highway_env.py"
+                            - "../HighwayEnv-RL_env/highway_env/envs/common/abstract.py"
+                            - "../HighwayEnv-RL_env/highway_env/road/road.py"
+                            - "../HighwayEnv-RL_env/highway_env/vehicle/controller.py"
+                            - "../HighwayEnv-RL_env/highway_env/vehicle/kinematics.py"
+                            - "../HighwayEnv-RL_env/highway_env/envs/common/action.py"
+                            - "../HighwayEnv-RL_env/highway_env/utils.py"
+                "required": 
+                    - "path"
+# your path to specific env files
+ENV_FILE_PATH: 
+    - "../HighwayEnv-RL_env/highway_env/envs/highway_env.py"
+    - "../HighwayEnv-RL_env/highway_env/envs/common/abstract.py"
+    - "../HighwayEnv-RL_env/highway_env/road/road.py"
+    - "../HighwayEnv-RL_env/highway_env/vehicle/controller.py"
+    - "../HighwayEnv-RL_env/highway_env/vehicle/kinematics.py"
+    - "../HighwayEnv-RL_env/highway_env/envs/common/action.py"
+    - "../HighwayEnv-RL_env/highway_env/utils.py"
