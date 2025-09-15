@@ -51,7 +51,7 @@ The second part is test_evaluations which contains the testing evaluation result
 
 The result are shown as two types of lines, including:
 
-- Snapshot every 50 steps (sample format): Step 50: Total reward = 0.967, Speed ​​= 30.0, Lane = 1, Collision = False
+- Snapshot every 50 steps (sample format): Step 50: Total reward = 0.967, Speed = 30.0, Lane = 1, Collision = False
 - End summary of each episode (sample format): Episode 1 ends: Reward = 29.510, Training time expired
 - The following info dictionary line contains info={'speed':..., 'crashed':..., 'action': array(...), 'rewards': {...}} (rewards includes components such as collision_reward, right_lane_reward, high_speed_reward, on_road_reward).
 
@@ -154,15 +154,15 @@ with open("train_evaluations.txt", "r", encoding="utf-8") as file:
 with open("test_evaluations.txt", "r", encoding="utf-8") as file:
     test_evaluations = file.read()
 
-train_truncated_text = load_truncated_trajectories("train_trajectories.jsonl")
-test_truncated_text = load_truncated_trajectories("test_trajectories.jsonl")
+train_trajectories = load_truncated_trajectories("train_trajectories.jsonl")
+test_trajectories = load_truncated_trajectories("test_trajectories.jsonl")
 
 analyzer_all = analyzer1.format(environement_code=environement_code, road=road, controller=controller, kinematics=kinematics,action=action,abstract=abstract,reward_function=reward_function)
 user = analyzer2.format(
     train_evaluations=train_evaluations,
     test_evaluations=test_evaluations,
-    train_truncated_text=train_truncated_text,
-    test_truncated_text=test_truncated_text,
+    train_trajectories=train_trajectories,
+    test_trajectories=test_trajectories,
 )
 
 data_path = find_newest_model_dir(OPENAI_CONFIG["tensorboard_log_path"])

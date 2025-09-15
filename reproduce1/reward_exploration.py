@@ -9,6 +9,7 @@ Created on Mon Jun 10 20:26:52 2024
 import os
 import yaml
 from utils import find_newest_model_dir
+from utils import load_truncated_trajectories
 
 ### 导入 配置文件config.yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
@@ -50,13 +51,53 @@ This is a failure modification of the previous reward function. The test results
   
 {reward_function}
 
-### Train and Test results of modified reward function
+### Train evaluation results of modified reward function
 
-- Train Results:
+This part contains the training evaluation results.  
+
+The result are shown as several array keys, including:
+
+- timesteps: An array of the number of training steps at each evaluation
+- results: The average reward of each evaluation episode per evaluation
+- ep_lengths: The average length of each evaluation episode per evaluation
+
+The following is Train Results:
 {train_evaluations}
 
-- Test Results:
+### Test evaluation results of modified reward function
+
+This part contains the testing evaluation results. 
+
+The result are shown as two types of lines, including:
+
+- Snapshot every 50 steps (sample format): Step 50: Total reward = 0.967, Speed = 30.0, Lane = 1, Collision = False
+- End summary of each episode (sample format): Episode 1 ends: Reward = 29.510, Training time expired
+- The following info dictionary line contains info={'speed':..., 'crashed':..., 'action': array(...), 'rewards': {...}} (rewards includes components such as collision_reward, right_lane_reward, high_speed_reward, on_road_reward).
+
+The following is Train Results:
 {test_evaluations}
+
+### Train and Test Trajectories of modified reward function
+
+This part contains part of model trajectories during training and testing.
+
+The trajectories are shown as a list, each line is a list of an entire episode, and each element in the list is a dictionary of step. When episode has too many steps, it will be truncated to the last 50 steps.
+
+The format is:
+[
+  {"obs":[...], "action":[0], "reward":0.12, "done":false, "truncated":false},
+  {"obs":[...], "action":[1], "reward":-0.05, "done":false, "truncated":false},
+  ...
+  {"obs":[...], "action":[0], "reward":0.20, "done":true, "truncated":false}
+]
+
+where "obs" is current observation (ndarray → list), "action" is action (scalar or array → list/scalar), "reward" is reward (floating point), "done" is whether the episode is done (boolean), "truncated" is whether the episode is truncated due to a timeout (boolean).
+
+The following is Training Trajectories:
+{train_trajectories}
+
+The following is Test Trajectories:
+{test_trajectories}
 
 ## Output Requirements
 
@@ -162,6 +203,9 @@ with open("train_evaluations.txt", "r", encoding="utf-8") as file:
 with open("test_evaluations.txt", "r", encoding="utf-8") as file:
     test_evaluations = file.read()
 
+train_trajectories = load_truncated_trajectories("train_trajectories.jsonl")
+test_trajectories = load_truncated_trajectories("test_trajectories.jsonl")
+
 reward_exploration_final=exploration1.format(environement_code=environement_code,
                                               road=road,
                                               controller=controller,
@@ -172,7 +216,9 @@ reward_exploration_final=exploration1.format(environement_code=environement_code
                                               analysis=analysis,
                                               reward_function=reward_function,
                                               train_evaluations=train_evaluations,
-                                              test_evaluations=test_evaluations
+                                              test_evaluations=test_evaluations,
+                                              train_trajectories=train_trajectories,
+                                              test_trajectories=test_trajectories,
                                               )
 
 user_reward_exploration = "Now write a new reward function to improve the **Previous reward function** based on **Analysis and suggestions on previous reward function**, and considering **Failure modification**. I will use the new reward function to train the RL agent and test it in the environment. **Do not output anything else outside the code block**. **Please double-check the output code. Ensure there is no error. The variables or functions used should be defined already.**" 
