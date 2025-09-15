@@ -1,3 +1,14 @@
+### 在运行代码时要在主程序前加上(要不远程服务器256个cpu就满了)
+import os
+os.environ["OMP_NUM_THREADS"] = "4" 
+os.environ["MKL_NUM_THREADS"] = "1" 
+os.environ["TF_NUM_INTRAOP_THREADS"] = "1" 
+os.environ["TF_NUM_INTEROP_THREADS"] = "1"
+os.environ["HWLOC_COMPONENTS"] = "-gl" 
+import torch
+torch.set_num_threads(8)
+torch.set_num_interop_threads(1)
+
 import numpy as np
 import pandas as pd
 import highway_env
@@ -18,15 +29,6 @@ import re
 import yaml
 import shutil
 
-### 在运行代码时要在主程序前加上(要不远程服务器256个cpu就满了)
-os.environ["OMP_NUM_THREADS"] = "4" 
-os.environ["MKL_NUM_THREADS"] = "1" 
-os.environ["TF_NUM_INTRAOP_THREADS"] = "1" 
-os.environ["TF_NUM_INTEROP_THREADS"] = "1"
-os.environ["HWLOC_COMPONENTS"] = "-gl" 
-import torch
-torch.set_num_threads(8)
-torch.set_num_interop_threads(1)
 
 # 读取配置文件
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)

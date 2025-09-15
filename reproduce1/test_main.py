@@ -6,6 +6,8 @@ import numpy as np
 import os
 from visualization import Visualization
 import yaml
+from trajectory_logger import TrajectoryRecorder
+from utils import find_newest_model_dir
 
 # 读取配置文件
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
@@ -13,9 +15,14 @@ OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 model_name = os.environ.get('REWARD_MODEL_NAME', 'unknown')
 
 ## 加载环境和模型
-env =  gym.make(OPENAI_CONFIG["ENV_ID"],
-            max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"])
-obs, info = env.reset() 
+env =  gym.make(
+    OPENAI_CONFIG["ENV_ID"],
+    max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"]
+)
+from reward_function import _reward
+env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
+env = TrajectoryRecorder(env, "test_trajectories.jsonl")
+obs, info = env.reset()
 
 # 把新写的奖励函数 绑定到当前的env实例上，覆盖掉原来类里的_reward方法
 from reward_function import _reward
@@ -24,15 +31,8 @@ env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
 tensorboard_log_path = OPENAI_CONFIG["tensorboard_log_path"]
 model = getattr(sb3, OPENAI_CONFIG["MODEL_NAME"]).load(os.path.join(tensorboard_log_path, "final_model.zip"),env=env)
 
-## 找到最新的模型文件夹
-models_path=OPENAI_CONFIG["tensorboard_log_path"]
-dir_content = os.listdir(models_path)
-version=[]
-for name in dir_content:
-    parts=name.split("_")
-    if len(parts)>1 and parts[1].isdigit():
-        version.append(int(parts[1]))
-data_path = os.path.join(models_path, 'DQN_'+str(max(version)), '')
+
+data_path = find_newest_model_dir(OPENAI_CONFIG["tensorboard_log_path"])
 
 Visualization = Visualization(
     path=data_path, 

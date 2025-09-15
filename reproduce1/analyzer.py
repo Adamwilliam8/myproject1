@@ -7,6 +7,8 @@ Created on 2024/6/29 16:20
 
 import os
 import yaml
+from utils import load_truncated_trajectories
+from utils import find_newest_model_dir
 
 ### 导入 配置文件config.yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
@@ -33,7 +35,41 @@ The reward function part in **environment_code** is **invalid** at the beginning
 
 ## Input format
 
-There will be two files. The first file is "train_evaluations.txt" which contains the training evaluation results. The second file is "test_evaluations.txt" which contains the testing evaluation results. 
+### Training evaluation
+
+The first part is train_evaluations which contains the training evaluation results.  
+
+The result are shown as several array keys, including:
+
+- timesteps: An array of the number of training steps at each evaluation
+- results: The average reward of each evaluation episode per evaluation
+- ep_lengths: The average length of each evaluation episode per evaluation
+
+### Testing evaluation
+
+The second part is test_evaluations which contains the testing evaluation results. 
+
+The result are shown as two types of lines, including:
+
+- Snapshot every 50 steps (sample format): Step 50: Total reward = 0.967, Speed ​​= 30.0, Lane = 1, Collision = False
+- End summary of each episode (sample format): Episode 1 ends: Reward = 29.510, Training time expired
+- The following info dictionary line contains info={'speed':..., 'crashed':..., 'action': array(...), 'rewards': {...}} (rewards includes components such as collision_reward, right_lane_reward, high_speed_reward, on_road_reward).
+
+### Training and test trajectories
+
+The third and forth part are training and test trajectories, which record part of model trajectories during training and testing.
+
+The trajectories are shown as a list, each line is a list of an entire episode, and each element in the list is a dictionary of step. When episode has too many steps, it will be truncated to the last 50 steps.
+
+The format is:
+[
+  {"obs":[...], "action":[0], "reward":0.12, "done":false, "truncated":false},
+  {"obs":[...], "action":[1], "reward":-0.05, "done":false, "truncated":false},
+  ...
+  {"obs":[...], "action":[0], "reward":0.20, "done":true, "truncated":false}
+]
+
+where "obs" is current observation (ndarray → list), "action" is action (scalar or array → list/scalar), "reward" is reward (floating point), "done" is whether the episode is done (boolean), "truncated" is whether the episode is truncated due to a timeout (boolean).
 
 ## Output Requirements
 
@@ -49,6 +85,12 @@ analyzer2 = '''
 
 - Test Results:
 {test_evaluations}
+
+- Training Trajectories:
+{train_trajectories}
+
+- Test Trajectories:
+{test_trajectories}
 
 Now according to the **Training and test results**, please write your analysis and suggestions on the reward function improvement.
 '''
@@ -112,20 +154,19 @@ with open("train_evaluations.txt", "r", encoding="utf-8") as file:
 with open("test_evaluations.txt", "r", encoding="utf-8") as file:
     test_evaluations = file.read()
 
-analyzer_all = analyzer1.format(environement_code=environement_code, road=road, controller=controller, kinematics=kinematics,action=action,abstract=abstract,reward_function=reward_function)
-user = analyzer2.format(train_evaluations=train_evaluations,test_evaluations=test_evaluations)
+train_truncated_text = load_truncated_trajectories("train_trajectories.jsonl")
+test_truncated_text = load_truncated_trajectories("test_trajectories.jsonl")
 
-## 找到最新的模型文件夹
-models_path=OPENAI_CONFIG["tensorboard_log_path"]
-dir_content = os.listdir(models_path)
-version=[]
-for name in dir_content:
-    parts=name.split("_")
-    if len(parts)>1 and parts[1].isdigit():
-        version.append(int(parts[1]))
-data_path = os.path.join(models_path, 'DQN_'+str(max(version)), '')
+analyzer_all = analyzer1.format(environement_code=environement_code, road=road, controller=controller, kinematics=kinematics,action=action,abstract=abstract,reward_function=reward_function)
+user = analyzer2.format(
+    train_evaluations=train_evaluations,
+    test_evaluations=test_evaluations,
+    train_truncated_text=train_truncated_text,
+    test_truncated_text=test_truncated_text,
+)
+
+data_path = find_newest_model_dir(OPENAI_CONFIG["tensorboard_log_path"])
 
 with open(os.path.join(data_path,'analyzer_prompt.txt'), 'w') as ap:
-# with open(data_path + 'analyzer_prompt.txt', 'w') as ap:
     print(analyzer_all,file = ap)
     print(user,file=ap)

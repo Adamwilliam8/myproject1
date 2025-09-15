@@ -8,6 +8,7 @@ Created on Mon Jun 24 14:32:26 2024
 #import analyzer_API
 import os
 import yaml
+from utils import find_newest_model_dir
 
 ### 导入 配置文件config.yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
@@ -70,15 +71,8 @@ Strictly follow the following format. **Do not output anything else outside the 
         ...
         return reward
 '''
-## 找到最新的模型文件夹
-models_path=OPENAI_CONFIG["tensorboard_log_path"]
-dir_content = os.listdir(models_path)
-version=[]
-for name in dir_content:
-    parts=name.split("_")
-    if len(parts)>1 and parts[1].isdigit():
-        version.append(int(parts[1]))
-data_path = os.path.join(models_path, 'DQN_'+str(max(version)), '')
+
+data_path = find_newest_model_dir(OPENAI_CONFIG["tensorboard_log_path"])
 
 ### env填充提示词
 file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"] , "envs" , "highway_env.py"), 'r', encoding='utf-8')

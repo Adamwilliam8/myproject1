@@ -8,6 +8,7 @@ Created on Mon Jun 10 20:26:52 2024
 #import analyzer_API
 import os
 import yaml
+from utils import find_newest_model_dir
 
 ### 导入 配置文件config.yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
@@ -176,15 +177,7 @@ reward_exploration_final=exploration1.format(environement_code=environement_code
 
 user_reward_exploration = "Now write a new reward function to improve the **Previous reward function** based on **Analysis and suggestions on previous reward function**, and considering **Failure modification**. I will use the new reward function to train the RL agent and test it in the environment. **Do not output anything else outside the code block**. **Please double-check the output code. Ensure there is no error. The variables or functions used should be defined already.**" 
 
-## 找到最新的模型文件夹
-models_path=OPENAI_CONFIG["tensorboard_log_path"]
-dir_content = os.listdir(models_path)
-version=[]
-for name in dir_content:
-    parts=name.split("_")
-    if len(parts)>1 and parts[1].isdigit():
-        version.append(int(parts[1]))
-data_path = os.path.join(models_path, 'DQN_'+str(max(version)), '')
+data_path = find_newest_model_dir(OPENAI_CONFIG["tensorboard_log_path"])
 
 with open(data_path + 'reward_exploration_prompt.txt', 'w') as rmp:
     print(reward_exploration_final,file = rmp)

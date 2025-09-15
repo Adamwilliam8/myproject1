@@ -35,6 +35,4 @@ analyzer_output=completion.choices[0].message.content
 #print(analyzer_output)
 
 with open(os.path.join(analyzer.data_path,"analyzer_output.txt"),'w') as write_analyzer:
-#with open(analyzer.data_path + 'analyzer_output.txt','w') as write_analyzer:
-    #print('# -*- coding: utf-8 -*-')
     print(analyzer_output,file=write_analyzer)

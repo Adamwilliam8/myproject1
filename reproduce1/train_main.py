@@ -13,6 +13,7 @@ import os
 import yaml
 import glob
 import re
+from trajectory_logger import TrajectoryRecorder
 
 ### 读取配置文件
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
@@ -29,17 +30,25 @@ os.makedirs(model_log_path, exist_ok=True)
 model_kwargs = OPENAI_CONFIG["MODEL_KWARGS"]  ## 模型参数
 model_kwargs["tensorboard_log"] = model_log_path
 
-### 把新奖励函数绑定在环境上
-env = gym.make(OPENAI_CONFIG["ENV_ID"],
-               max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"])
-obs, info=env.reset() 
-# 把新写的奖励函数 绑定到当前的env实例上，覆盖掉原来类里的_reward方法
+### 把新奖励函数绑定在环境上并记录轨迹
+env = gym.make(
+    OPENAI_CONFIG["ENV_ID"],
+    max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"]
+)
 from reward_function import _reward
 env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
+env = TrajectoryRecorder(env, "train_trajectories.jsonl")
+obs, info = env.reset()
+
 # 评估环境（带 Monitor 且绑定自定义奖励）
-eval_env = Monitor(gym.make(OPENAI_CONFIG["ENV_ID"],
-               max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"]))
+eval_env = Monitor(
+    gym.make(
+        OPENAI_CONFIG["ENV_ID"],
+        max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"]
+    )
+)
 eval_env._reward = _reward.__get__(eval_env, type(eval_env))
+eval_env = TrajectoryRecorder(eval_env, "train_trajectories.jsonl")
 
 ### 查找最新的检查点
 checkpoint_dir = os.path.join(OPENAI_CONFIG["tensorboard_log_path"], "checkpoints","")
