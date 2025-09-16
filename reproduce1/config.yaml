@@ -11,8 +11,8 @@ DEEPSEEK_TEMPERATURE: 0.3        # reasoner用不了温度
 QWEN_KEY: "sk-1c71165453eb4ad192753babda9bffe0"
 QWEN_MODEL: "qwen3-coder-plus"
 QWEN_BASE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-QWEN_MAX_INPUT_TOKENS: 997,952   # 最大输入tokens
-QWEN_MAX_TOKENS: 65,536          # 最大输出tokens
+QWEN_MAX_INPUT_TOKENS: 997952   # 最大输入tokens
+QWEN_MAX_TOKENS: 65536          # 最大输出tokens
 QWEN_ENABLE_THINKING: True       # 是否开启思考模式
 
 ### ENV FILE ADDRESS
@@ -44,9 +44,9 @@ MODEL_KWARGS:
 
 
 reward_threshold: 9000  # your reward threshold
-cycle_number: 5  # your cycle number/2 because ......
+cycle_number: 10  # your cycle number/2 because ......
 every_cycle_timesteps: 200000  # total_timesteps/cycle number
-eval_freq: 10000   # your eval freq and save model frequency 
+eval_freq: 10   # your eval freq and save model frequency 
 n_eval_episodes: 5    # your n eval episodes   5
 
 tensorboard_log_path: "../reproduce1/highway_dqn/"  # your model save path

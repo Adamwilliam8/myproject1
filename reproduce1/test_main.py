@@ -11,6 +11,11 @@ import yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 # 传递给 正在用的 的模型名称
 model_name = os.environ.get('REWARD_MODEL_NAME', 'unknown')
+override_log_path = os.environ.get('MODEL_WORKSPACE')
+if override_log_path:
+    tensorboard_log_path = os.path.abspath(override_log_path)
+else:
+    tensorboard_log_path = os.path.abspath(OPENAI_CONFIG["tensorboard_log_path"])
 
 ## 加载环境和模型
 env =  gym.make(OPENAI_CONFIG["ENV_ID"],
@@ -21,11 +26,10 @@ obs, info = env.reset()
 from reward_function import _reward
 env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
 
-tensorboard_log_path = OPENAI_CONFIG["tensorboard_log_path"]
 model = getattr(sb3, OPENAI_CONFIG["MODEL_NAME"]).load(os.path.join(tensorboard_log_path, "final_model.zip"),env=env)
 
 ## 找到最新的模型文件夹
-models_path=OPENAI_CONFIG["tensorboard_log_path"]
+models_path = tensorboard_log_path
 dir_content = os.listdir(models_path)
 version=[]
 for name in dir_content:
