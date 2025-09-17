@@ -17,7 +17,11 @@ from trajectory_logger import TrajectoryRecorder
 
 ### 读取配置文件
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
-base_log_path = OPENAI_CONFIG["tensorboard_log_path"]  
+override_log_path = os.environ.get('MODEL_WORKSPACE')
+if override_log_path:
+    base_log_path = os.path.abspath(override_log_path)
+else:
+    base_log_path = os.path.abspath(OPENAI_CONFIG["tensorboard_log_path"])
 os.makedirs(base_log_path, exist_ok=True)
 existing_runs = [   # 获取 模型版本 最大数
     int(d.split("_")[1])
@@ -51,7 +55,7 @@ eval_env._reward = _reward.__get__(eval_env, type(eval_env))
 eval_env = TrajectoryRecorder(eval_env, "train_trajectories.jsonl")
 
 ### 查找最新的检查点
-checkpoint_dir = os.path.join(OPENAI_CONFIG["tensorboard_log_path"], "checkpoints","")
+checkpoint_dir = os.path.join(base_log_path, "checkpoints", "")
 if os.path.exists(checkpoint_dir):
     checkpoint_files = glob.glob(os.path.join(checkpoint_dir, "*.zip"))
     latest_checkpoint = max(checkpoint_files, key=os.path.getctime)
@@ -64,13 +68,13 @@ if os.path.exists(checkpoint_dir):
     new_logger = configure(model_log_path, ["stdout", "tensorboard"])
     model.model.set_logger(new_logger)
 
-    model.train(total_timesteps=OPENAI_CONFIG["every_cycle_timesteps"], 
-            eval_env=eval_env, 
-            eval_freq=OPENAI_CONFIG["eval_freq"], 
-            n_eval_episodes=OPENAI_CONFIG["n_eval_episodes"], 
-            reward_threshold=OPENAI_CONFIG["reward_threshold"], 
-            save_path=OPENAI_CONFIG["tensorboard_log_path"])
-    model.save(os.path.join(OPENAI_CONFIG["tensorboard_log_path"], "final_model"))
+    model.train(total_timesteps=OPENAI_CONFIG["every_cycle_timesteps"],
+            eval_env=eval_env,
+            eval_freq=OPENAI_CONFIG["eval_freq"],
+            n_eval_episodes=OPENAI_CONFIG["n_eval_episodes"],
+            reward_threshold=OPENAI_CONFIG["reward_threshold"],
+            save_path=base_log_path)
+    model.save(os.path.join(base_log_path, "final_model"))
 else:
     print("没有找到检查点，创建新模型")
     model=Model(env, model_class=getattr(sb3, OPENAI_CONFIG["MODEL_NAME"]), 
@@ -80,13 +84,13 @@ else:
     new_logger = configure(model_log_path, ["stdout", "tensorboard"])
     model.model.set_logger(new_logger)
     
-    model.train(total_timesteps=OPENAI_CONFIG["every_cycle_timesteps"], 
-            eval_env=eval_env, 
-            eval_freq=OPENAI_CONFIG["eval_freq"], 
-            n_eval_episodes=OPENAI_CONFIG["n_eval_episodes"], 
-            reward_threshold=OPENAI_CONFIG["reward_threshold"], 
-            save_path=OPENAI_CONFIG["tensorboard_log_path"])
-    model.save(os.path.join(OPENAI_CONFIG["tensorboard_log_path"], "final_model"))
+    model.train(total_timesteps=OPENAI_CONFIG["every_cycle_timesteps"],
+            eval_env=eval_env,
+            eval_freq=OPENAI_CONFIG["eval_freq"],
+            n_eval_episodes=OPENAI_CONFIG["n_eval_episodes"],
+            reward_threshold=OPENAI_CONFIG["reward_threshold"],
+            save_path=base_log_path)
+    model.save(os.path.join(base_log_path, "final_model"))
 
 print("------------------------------------------")
 print("训练完成，模型已保存到 final_model.zip")
@@ -94,7 +98,7 @@ print(f"模型总训练步数：{model.num_timesteps}")
 print("------------------------------------------")
 
 ### 创造文件 里面写入 训练的奖励函数(之后给ai分析用)
-data = np.load(os.path.join(OPENAI_CONFIG["tensorboard_log_path"], 'best_Eval','evaluations.npz'))  
+data = np.load(os.path.join(base_log_path, 'best_Eval','evaluations.npz'))
 with open('train_evaluations.txt', 'w') as f:
     f.write("训练评估结果：\n\n")
     for key in data.keys():

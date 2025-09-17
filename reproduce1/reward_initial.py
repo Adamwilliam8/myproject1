@@ -2,7 +2,6 @@
 # @Time    : 2024/6/29 16:20
 # @Author  : Adam
 # @File    : reward_initial.py
-import highway_env
 import gymnasium as gym
 import os
 import yaml

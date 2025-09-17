@@ -3,7 +3,6 @@
 # @Time    : 2024/6/29 16:20
 # @Author  : Adam
 """
-import highway_env
 from openai import OpenAI
 import reward_initial
 import yaml
