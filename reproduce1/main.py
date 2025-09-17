@@ -36,6 +36,8 @@ OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 
 previous_episode_reward = -1
 
+# 注意！！！这行是为了确保第一次时有 描述环境的文件
+os.system("python env_analyzer_API.py")
 # 注意！！！这行是为了确保第一次时有 奖励函数文件 去替换原先的
 os.system("python reward_initial_API.py")
 

@@ -15,13 +15,9 @@ reward_initial_prompt = '''
 You are now a proficient reward designer for a reinforcement learning (RL) agent. You need to write proper reward functions for the agent. The agent will be trained for the vehicle driving on highway driving environment to improve the performance of the agent. The detailed description and code of the task is as below.
 
     -Description: The vehicle is driving on a straight highway with several lanes, and is rewarded for reaching a high speed, staying on the rightmost lanes and avoiding collisions. The agent objective is to reach a high speed while avoiding collisions with neighboring vehicles. Driving on the right side of the road is also rewarded. 
-    -Environment code:
-        {environement_code}
-        {road}
-        {controller}
-        {kinematics}
-        {action}
-        {abstract}
+    -Environment Describe:
+            {environement_describe}
+
 
 ## Reward function requirements
 
@@ -62,56 +58,10 @@ Strictly follow the following format. **Do not output anything else outside the 
 user_reward_initial="Now write a reward function. Then in each iteration, I will use the reward function to train the RL agent and test it in the environment. I will give you possible reasons for the failure found during the testing, and you should modify the reward function accordingly. **Do not output anything else outside the code block. Please double check the output code. Ensure there is no error. The variables or function used should be defined already.**"
 
 ### 填充提示词
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"] , "envs" , "highway_env.py"), 'r', encoding='utf-8')
-# file=open(os.path.join(os.getcwd(),"..","HighwayEnv-RL_env","highway_env","envs","highway_env.py"), 'r', encoding='utf-8')
-content=file.readlines()
-environement_code=''
-for line in content:
-    environement_code=environement_code+"    "+line
-file.close()
+with open("env_analyzer_output.txt", 'r') as f:
+    environement_describe = f.read()
 
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"] ,"road","road.py"), 'r', encoding='utf-8')
-# file=open(os.path.join(os.getcwd(),"..","HighwayEnv-RL_env","highway_env","road","road.py"), 'r', encoding='utf-8')
-content=file.readlines()
-road=''
-for line in content:
-    road=road+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"vehicle","controller.py"), 'r', encoding='utf-8')
-content=file.readlines()
-controller=''
-for line in content:
-    controller=controller+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"vehicle","kinematics.py"), 'r', encoding='utf-8')
-content=file.readlines()
-kinematics=''
-for line in content:
-    kinematics=kinematics+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"envs","common","action.py"), 'r', encoding='utf-8')
-content=file.readlines()
-action=''
-for line in content:
-    action=action+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"envs","common","abstract.py"), 'r', encoding='utf-8')
-content=file.readlines()
-abstract=''
-for line in content:
-    abstract=abstract+"    "+line
-file.close()
-
-reward_initial_prompt=reward_initial_prompt.format(environement_code=environement_code, 
-                                                   road=road, 
-                                                   controller=controller, 
-                                                   kinematics=kinematics,
-                                                   action=action,
-                                                   abstract=abstract
+reward_initial_prompt=reward_initial_prompt.format(environement_describe=environement_describe
                                                    )
 
 with open('reward_initial_prompt.txt', 'w') as rip:

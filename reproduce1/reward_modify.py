@@ -20,12 +20,7 @@ You are now a proficient reward designer for a reinforcement learning (RL) agent
 
 - Description: The vehicle is driving on a straight highway with several lanes, and is rewarded for reaching a high speed, staying on the rightmost lanes and avoiding collisions. The agent objective is to reach a high speed while avoiding collisions with neighboring vehicles. Driving on the right side of the road is also rewarded. 
 - Environment code: 
-        {environement_code}
-        {road}
-        {controller}
-        {kinematics}
-        {action}
-        {abstract}
+        {environement_describe}
 
 ## Reward function requirements
 
@@ -75,49 +70,8 @@ Strictly follow the following format. **Do not output anything else outside the 
 data_path = find_newest_model_dir(OPENAI_CONFIG["tensorboard_log_path"])
 
 ### env填充提示词
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"] , "envs" , "highway_env.py"), 'r', encoding='utf-8')
-# file=open(os.path.join(os.getcwd(),"..","HighwayEnv-RL_env","highway_env","envs","highway_env.py"), 'r', encoding='utf-8')
-content=file.readlines()
-environement_code=''
-for line in content:
-    environement_code=environement_code+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"] ,"road","road.py"), 'r', encoding='utf-8')
-# file=open(os.path.join(os.getcwd(),"..","HighwayEnv-RL_env","highway_env","road","road.py"), 'r', encoding='utf-8')
-content=file.readlines()
-road=''
-for line in content:
-    road=road+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"vehicle","controller.py"), 'r', encoding='utf-8')
-content=file.readlines()
-controller=''
-for line in content:
-    controller=controller+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"vehicle","kinematics.py"), 'r', encoding='utf-8')
-content=file.readlines()
-kinematics=''
-for line in content:
-    kinematics=kinematics+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"envs","common","action.py"), 'r', encoding='utf-8')
-content=file.readlines()
-action=''
-for line in content:
-    action=action+"    "+line
-file.close()
-
-file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"],"envs","common","abstract.py"), 'r', encoding='utf-8')
-content=file.readlines()
-abstract=''
-for line in content:
-    abstract=abstract+"    "+line
-file.close()
+with open("env_analyzer_output.txt", 'r') as f:
+    environement_describe = f.read()
 
 ### 非env填充词
 file = open('reward_function.py','r')
@@ -134,7 +88,9 @@ for item in analysis_lines:
     analysis = analysis + item
 file.close()
 
-reward_modify_final=modify1.format(environement_code=environement_code, road=road, controller=controller, kinematics=kinematics,action=action,abstract=abstract,reward_function=reward_function,analysis=analysis)
+reward_modify_final=modify1.format(environement_describe=environement_describe,
+                                   reward_function=reward_function,
+                                   analysis=analysis)
 
 user_reward_modify = "Now write a new reward function to improve the current one based on **Analysis and suggestions for current reward function**. I will use the new reward function to train the RL agent and test it in the environment. **Do not output anything else outside the code block**. **Please double check the output code. Ensure there is no error. The variables or functions used should be defined already.**" 
 
