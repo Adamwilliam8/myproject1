@@ -26,17 +26,12 @@ env =  gym.make(
 )
 from reward_function import _reward
 env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
-env = TrajectoryRecorder(env, "test_trajectories.jsonl")
+env = TrajectoryRecorder(env, os.path.join(tensorboard_log_path,"test_trajectories.jsonl"))
 obs, info = env.reset()
-
-# 把新写的奖励函数 绑定到当前的env实例上，覆盖掉原来类里的_reward方法
-from reward_function import _reward
-env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
 
 model = getattr(sb3, OPENAI_CONFIG["MODEL_NAME"]).load(os.path.join(tensorboard_log_path, "final_model.zip"),env=env)
 
-
-data_path = find_newest_model_dir(OPENAI_CONFIG["tensorboard_log_path"])
+data_path = find_newest_model_dir(tensorboard_log_path)
 
 Visualization = Visualization(
     path=data_path, 

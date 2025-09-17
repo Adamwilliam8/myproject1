@@ -28,24 +28,7 @@ import sys
 import re
 import yaml
 import shutil
-
-def copy_directory(src, dst):
-    """复制目录内容，如果源不存在则创建空目标目录。"""
-    if os.path.exists(src):
-        if os.path.exists(dst):
-            shutil.rmtree(dst)
-        shutil.copytree(src, dst)
-    else:
-        if not os.path.exists(dst):
-            os.makedirs(dst, exist_ok=True)
-
-
-def copy_file(src, dst):
-    """复制文件并在需要时创建父目录。"""
-    if not os.path.exists(src):
-        return
-    os.makedirs(os.path.dirname(dst), exist_ok=True)
-    shutil.copy2(src, dst)
+from utils import copy_directory, copy_file
 
 
 # 读取配置文件
@@ -170,6 +153,14 @@ for gpt_response in range(OPENAI_CONFIG["cycle_number"]):
     if latest_dqn_dir:
         copy_directory(os.path.join(best_candidate_dir, latest_dqn_dir),
                        os.path.join(main_model_dir, latest_dqn_dir))
+
+    train_trajectories_src = os.path.join(best_candidate_dir, 'train_trajectories.jsonl')
+    if os.path.exists(train_trajectories_src):
+        shutil.copy(train_trajectories_src, 'train_trajectories.jsonl')
+
+    test_trajectories_src = os.path.join(best_candidate_dir, 'test_trajectories.jsonl')
+    if os.path.exists(test_trajectories_src):
+        shutil.copy(test_trajectories_src, 'test_trajectories.jsonl')
 
     for record in candidate_records:
         if record['path'] != best_candidate_dir and os.path.exists(record['path']):

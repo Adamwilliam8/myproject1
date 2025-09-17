@@ -7,7 +7,7 @@ Created on 2024/6/29 16:20
 
 import os
 import yaml
-from utils import load_truncated_trajectories
+from utils import load_truncated_trajectories,_compact_trajectories
 from utils import find_newest_model_dir
 
 ### 导入 配置文件config.yaml
@@ -53,7 +53,7 @@ The result are shown as two types of lines, including:
 
 - Snapshot every 50 steps (sample format): Step 50: Total reward = 0.967, Speed = 30.0, Lane = 1, Collision = False
 - End summary of each episode (sample format): Episode 1 ends: Reward = 29.510, Training time expired
-- The following info dictionary line contains info={'speed':..., 'crashed':..., 'action': array(...), 'rewards': {...}} (rewards includes components such as collision_reward, right_lane_reward, high_speed_reward, on_road_reward).
+- The following info dictionary line contains info={{'speed':..., 'crashed':..., 'action': array(...), 'rewards': {{...}} (rewards includes components such as collision_reward, right_lane_reward, high_speed_reward, on_road_reward).
 
 ### Training and test trajectories
 
@@ -63,10 +63,10 @@ The trajectories are shown as a list, each line is a list of an entire episode, 
 
 The format is:
 [
-  {"obs":[...], "action":[0], "reward":0.12, "done":false, "truncated":false},
-  {"obs":[...], "action":[1], "reward":-0.05, "done":false, "truncated":false},
+  {{"obs":[...], "action":[0], "reward":0.12, "done":false, "truncated":false}},
+  {{"obs":[...], "action":[1], "reward":-0.05, "done":false, "truncated":false}},
   ...
-  {"obs":[...], "action":[0], "reward":0.20, "done":true, "truncated":false}
+  {{"obs":[...], "action":[0], "reward":0.20, "done":true, "truncated":false}}
 ]
 
 where "obs" is current observation (ndarray → list), "action" is action (scalar or array → list/scalar), "reward" is reward (floating point), "done" is whether the episode is done (boolean), "truncated" is whether the episode is truncated due to a timeout (boolean).
@@ -97,7 +97,6 @@ Now according to the **Training and test results**, please write your analysis a
 
 ### analyzer1填充提示词
 file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"] , "envs" , "highway_env.py"), 'r', encoding='utf-8')
-# file=open(os.path.join(os.getcwd(),"..","HighwayEnv-RL_env","highway_env","envs","highway_env.py"), 'r', encoding='utf-8')
 content=file.readlines()
 environement_code=''
 for line in content:
@@ -105,7 +104,6 @@ for line in content:
 file.close()
 
 file=open(os.path.join(OPENAI_CONFIG["ENV_FILE_ADDRESS"] ,"road","road.py"), 'r', encoding='utf-8')
-# file=open(os.path.join(os.getcwd(),"..","HighwayEnv-RL_env","highway_env","road","road.py"), 'r', encoding='utf-8')
 content=file.readlines()
 road=''
 for line in content:
@@ -156,8 +154,16 @@ with open("test_evaluations.txt", "r", encoding="utf-8") as file:
 
 train_trajectories = load_truncated_trajectories("train_trajectories.jsonl")
 test_trajectories = load_truncated_trajectories("test_trajectories.jsonl")
+train_trajectories = _compact_trajectories(train_trajectories)
+test_trajectories = _compact_trajectories(test_trajectories)
 
-analyzer_all = analyzer1.format(environement_code=environement_code, road=road, controller=controller, kinematics=kinematics,action=action,abstract=abstract,reward_function=reward_function)
+analyzer_all = analyzer1.format(environement_code=environement_code, 
+                                road=road, 
+                                controller=controller, 
+                                kinematics=kinematics,
+                                action=action,
+                                abstract=abstract,
+                                reward_function=reward_function)
 user = analyzer2.format(
     train_evaluations=train_evaluations,
     test_evaluations=test_evaluations,

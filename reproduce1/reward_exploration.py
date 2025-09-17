@@ -72,7 +72,7 @@ The result are shown as two types of lines, including:
 
 - Snapshot every 50 steps (sample format): Step 50: Total reward = 0.967, Speed = 30.0, Lane = 1, Collision = False
 - End summary of each episode (sample format): Episode 1 ends: Reward = 29.510, Training time expired
-- The following info dictionary line contains info={'speed':..., 'crashed':..., 'action': array(...), 'rewards': {...}} (rewards includes components such as collision_reward, right_lane_reward, high_speed_reward, on_road_reward).
+- The following info dictionary line contains info={{'speed':..., 'crashed':..., 'action': array(...), 'rewards': {{...}} (rewards includes components such as collision_reward, right_lane_reward, high_speed_reward, on_road_reward).
 
 The following is Train Results:
 {test_evaluations}
@@ -85,10 +85,10 @@ The trajectories are shown as a list, each line is a list of an entire episode, 
 
 The format is:
 [
-  {"obs":[...], "action":[0], "reward":0.12, "done":false, "truncated":false},
-  {"obs":[...], "action":[1], "reward":-0.05, "done":false, "truncated":false},
+  {{"obs":[...], "action":[0], "reward":0.12, "done":false, "truncated":false}},
+  {{"obs":[...], "action":[1], "reward":-0.05, "done":false, "truncated":false}},
   ...
-  {"obs":[...], "action":[0], "reward":0.20, "done":true, "truncated":false}
+  {{"obs":[...], "action":[0], "reward":0.20, "done":true, "truncated":false}}
 ]
 
 where "obs" is current observation (ndarray → list), "action" is action (scalar or array → list/scalar), "reward" is reward (floating point), "done" is whether the episode is done (boolean), "truncated" is whether the episode is truncated due to a timeout (boolean).

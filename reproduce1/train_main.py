@@ -41,7 +41,7 @@ env = gym.make(
 )
 from reward_function import _reward
 env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
-env = TrajectoryRecorder(env, "train_trajectories.jsonl")
+env = TrajectoryRecorder(env, os.path.join(base_log_path,"train_trajectories.jsonl"))
 obs, info = env.reset()
 
 # 评估环境（带 Monitor 且绑定自定义奖励）
@@ -52,7 +52,7 @@ eval_env = Monitor(
     )
 )
 eval_env._reward = _reward.__get__(eval_env, type(eval_env))
-eval_env = TrajectoryRecorder(eval_env, "train_trajectories.jsonl")
+eval_env = TrajectoryRecorder(eval_env, os.path.join(base_log_path,"train_trajectories.jsonl"))
 
 ### 查找最新的检查点
 checkpoint_dir = os.path.join(base_log_path, "checkpoints", "")

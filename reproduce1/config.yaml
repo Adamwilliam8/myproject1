@@ -46,7 +46,7 @@ MODEL_KWARGS:
 reward_threshold: 9000  # your reward threshold
 cycle_number: 10  # your cycle number/2 because ......
 every_cycle_timesteps: 200000  # total_timesteps/cycle number
-eval_freq: 10   # your eval freq and save model frequency 
+eval_freq: 10000   # your eval freq and save model frequency 
 n_eval_episodes: 5    # your n eval episodes   5
 
 tensorboard_log_path: "../reproduce1/highway_dqn/"  # your model save path

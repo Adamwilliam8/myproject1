@@ -40,6 +40,9 @@ def call_llm(model_name: str, config: dict, messages):
         stream=False,
     )
 
+    print(f"模型输入消耗的tokens数:{completion.usage.prompt_tokens}")
+    print(f"模型输出消耗的tokens数:{completion.usage.completion_tokens}")
+
     reward_modify_output = completion.choices[0].message.content
 
     output_dir = os.path.join('rewards', model_name)

@@ -30,6 +30,9 @@ completion = client.chat.completions.create(
   stream=False
 )
 
+print(f"模型输入消耗的tokens数:{completion.usage.prompt_tokens}")
+print(f"模型输出消耗的tokens数:{completion.usage.completion_tokens}")
+
 #print(response['choices'][0]['text'])
 analyzer_output=completion.choices[0].message.content
 #print(analyzer_output)
