@@ -73,7 +73,7 @@ class Model:
             callback=callback,
             reset_num_timesteps=False,
         )
-
+        
     def save(self, path):
         self.model.save(path)
 
