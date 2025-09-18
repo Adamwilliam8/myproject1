@@ -18,7 +18,7 @@ QWEN_ENABLE_THINKING: True       # 是否开启思考模式
 ### ENV FILE ADDRESS
 ENV_FILE_ADDRESS: "../HighwayEnv-RL_env/highway_env"  # your path to the all env file
 ENV_ID: "highway-v0"
-MAX_EPISODE_STEPS: 1000   # your max episode steps
+MAX_EPISODE_STEPS: 500   # your max episode steps
 
 ### MODEL（YOUR TRAINING MODEL CONFIG）
 MODEL_NAME: "DQN"  # "PPO" or "DQN"
@@ -28,9 +28,9 @@ MODEL_KWARGS:
         net_arch: [256, 256]
     "learning_rate": 0.0005   # 5e-4
     "buffer_size": 15000
-    "learning_starts": 200
+    "learning_starts": 64    # 通常应为 batch_size 的 1-2 倍
     "batch_size": 32
-    "gamma": 0.8
+    "gamma": 0.99
     "tau": 1.0
     "train_freq": 1
     "gradient_steps": 1
@@ -44,9 +44,9 @@ MODEL_KWARGS:
 
 
 reward_threshold: 9000  # your reward threshold
-cycle_number: 10  # your cycle number
-every_cycle_timesteps: 200000  # total_timesteps/cycle number
-eval_freq: 10000   # your eval freq and save model frequency 
+cycle_number: 2  # your cycle number
+every_cycle_timesteps: 1000  # total_timesteps/cycle number
+eval_freq: 1000   # your eval freq and save model frequency 
 n_eval_episodes: 5    # your n eval episodes   5
 
 tensorboard_log_path: "../reproduce1/highway_dqn/"  # your model save path

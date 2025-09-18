@@ -7,6 +7,24 @@ import os
 from visualization import Visualization
 import yaml
 
+def compute_moving_average(data, window_size=5):
+    """Compute a trailing moving average with the given window size."""
+    if not data:
+        return []
+
+    window_size = max(1, window_size)
+    moving_averages = []
+    window_sum = 0.0
+
+    for index, value in enumerate(data):
+        window_sum += value
+        if index >= window_size:
+            window_sum -= data[index - window_size]
+        effective_window = min(window_size, index + 1)
+        moving_averages.append(window_sum / effective_window)
+
+    return moving_averages
+
 # 读取配置文件
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 
@@ -46,7 +64,7 @@ step_count = 0
 max_steps = 1000
 episode_count = 0
 
-total_rewards = []
+step_reward_samples = []
 episode_rewards = []
 cumulative_rewards = []
 
@@ -63,10 +81,10 @@ while step_count < max_steps:
 
         # 记录关键数据
         if step_count % 50 == 0:  # 每50步记录一次
-            total_rewards.append(reward)
+            step_reward_samples.append(reward)
             
             with open('test_evaluations.txt', 'a') as f:
-                f.write(f"步数{step_count}: 总奖励={reward:.3f}, 速度={env.unwrapped.vehicle.speed:.1f}, "
+                f.write(f"步数{step_count}: 步奖励={reward:.3f}, 速度={env.unwrapped.vehicle.speed:.1f}, "
                         f"车道={env.unwrapped.vehicle.lane_index[2]}, 碰撞={env.unwrapped.vehicle.crashed}\n")
         
         cumulative_reward += reward
@@ -86,22 +104,35 @@ while step_count < max_steps:
 # 分析奖励组件
 with open('test_evaluations.txt', 'a') as f:
     f.write(f"\n=== 奖励组件分析 ===\n")
-    f.write(f"总奖励 - 平均: {np.mean(total_rewards):.3f}, 标准差: {np.std(total_rewards):.3f}")
+    if episode_rewards:
+        f.write(f"总奖励 - 平均: {np.mean(episode_rewards):.3f}, 标准差: {np.std(episode_rewards):.3f}")
+    else:
+        f.write("总奖励数据不足，无法计算统计量。")
 
 print("转换完成，内容已写入 test_evaluations.txt")
 
 
-Visualization.save_data_and_plot(data=total_rewards,  # 记录步数(能被50整除)的单个reward
-                                 filename='every_50_steps_reward', 
-                                 xlabel='every 50 steps', 
-                                 ylabel='every 50 steps reward')
-Visualization.save_data_and_plot(data=episode_rewards,  # 记录每个episode的总reward
-                                 filename='every_episode_reward', 
-                                 xlabel='every episode', 
-                                 ylabel='every episode reward')
-Visualization.save_data_and_plot(data=cumulative_rewards,  # 记录每步累加reward
-                                 filename='cumulative_reward', 
-                                 xlabel='every step', 
-                                 ylabel='cumulative reward for agent')
+if step_reward_samples:
+    Visualization.save_data_and_plot(data=step_reward_samples,  # 记录步数(能被50整除)的单个reward
+                                     filename='every_50_steps_reward',
+                                     xlabel='every 50 steps',
+                                     ylabel='per-step reward sample')
+
+if episode_rewards:
+    Visualization.save_data_and_plot(data=episode_rewards,  # 记录每个episode的总reward
+                                     filename='every_episode_reward',
+                                     xlabel='every episode',
+                                     ylabel='every episode total reward')
+
+    Visualization.save_data_and_plot(data=compute_moving_average(episode_rewards, window_size=5),
+                                     filename='every_episode_reward_moving_avg',
+                                     xlabel='every episode',
+                                     ylabel='moving average episode reward')
+
+if cumulative_rewards:
+    Visualization.save_data_and_plot(data=cumulative_rewards,  # 记录每步累加reward
+                                     filename='cumulative_reward',
+                                     xlabel='every step',
+                                     ylabel='cumulative reward for agent')
 
 env.close()

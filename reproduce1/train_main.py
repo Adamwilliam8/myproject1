@@ -39,7 +39,27 @@ env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
 # 评估环境（带 Monitor 且绑定自定义奖励）
 eval_env = Monitor(gym.make(OPENAI_CONFIG["ENV_ID"],
                max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"]))
-eval_env._reward = _reward.__get__(eval_env, type(eval_env))
+def _bind_reward_to_env(target_env):
+    """确保自定义奖励被绑定到实际的环境实例上。"""
+
+    # VecEnv 支持：对子环境进行递归绑定
+    if hasattr(target_env, "envs"):
+        for sub_env in target_env.envs:
+            _bind_reward_to_env(sub_env)
+        return
+
+    # 常规 Gym 包装器（如 Monitor）：需要深入到底层环境
+    base_env = getattr(target_env, "env", None)
+    if base_env is not None and base_env is not target_env:
+        _bind_reward_to_env(base_env)
+        return
+
+    # 找到真正的环境后绑定奖励函数
+    actual_env = getattr(target_env, "unwrapped", target_env)
+    actual_env._reward = _reward.__get__(actual_env, type(actual_env))
+
+
+_bind_reward_to_env(eval_env)
 
 ### 查找最新的检查点
 checkpoint_dir = os.path.join(OPENAI_CONFIG["tensorboard_log_path"], "checkpoints","")
