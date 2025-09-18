@@ -9,6 +9,7 @@ import yaml
 import json
 import os
 
+print("reward_initial_API.py")
 # 导入 配置文件config.yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 # 支持的模型配置

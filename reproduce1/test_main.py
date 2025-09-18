@@ -7,7 +7,7 @@ import os
 from visualization import Visualization
 import yaml
 from trajectory_logger import TrajectoryRecorder
-from utils import find_newest_model_dir
+from utils import find_newest_model_dir,compute_moving_average
 
 # 读取配置文件
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
@@ -25,8 +25,26 @@ env =  gym.make(
     max_episode_steps=OPENAI_CONFIG["MAX_EPISODE_STEPS"]
 )
 from reward_function import _reward
-env._reward = _reward.__get__(env, type(env))  # 绑定为实例方法
 env = TrajectoryRecorder(env, os.path.join(tensorboard_log_path,"test_trajectories.jsonl"))
+def _bind_reward_to_env(target_env):
+    """确保自定义奖励被绑定到实际的环境实例上。"""
+
+    # VecEnv 支持：对子环境进行递归绑定
+    if hasattr(target_env, "envs"):
+        for sub_env in target_env.envs:
+            _bind_reward_to_env(sub_env)
+        return
+
+    # 常规 Gym 包装器（如 Monitor）：需要深入到底层环境
+    base_env = getattr(target_env, "env", None)
+    if base_env is not None and base_env is not target_env:
+        _bind_reward_to_env(base_env)
+        return
+
+    # 找到真正的环境后绑定奖励函数
+    actual_env = getattr(target_env, "unwrapped", target_env)
+    actual_env._reward = _reward.__get__(actual_env, type(actual_env))
+_bind_reward_to_env(env)
 obs, info = env.reset()
 
 model = getattr(sb3, OPENAI_CONFIG["MODEL_NAME"]).load(os.path.join(tensorboard_log_path, "final_model.zip"),env=env)
@@ -47,7 +65,7 @@ step_count = 0
 max_steps = 1000
 episode_count = 0
 
-total_rewards = []
+step_reward_samples = []
 episode_rewards = []
 cumulative_rewards = []
 
@@ -64,10 +82,10 @@ while step_count < max_steps:
 
         # 记录关键数据
         if step_count % 50 == 0:  # 每50步记录一次
-            total_rewards.append(reward)
+            step_reward_samples.append(reward)
             
             with open('test_evaluations.txt', 'a') as f:
-                f.write(f"步数{step_count}: 总奖励={reward:.3f}, 速度={env.unwrapped.vehicle.speed:.1f}, "
+                f.write(f"步数{step_count}: 步奖励={reward:.3f}, 速度={env.unwrapped.vehicle.speed:.1f}, "
                         f"车道={env.unwrapped.vehicle.lane_index[2]}, 碰撞={env.unwrapped.vehicle.crashed}\n")
         
         cumulative_reward += reward
@@ -85,28 +103,37 @@ while step_count < max_steps:
     episode_rewards.append(episode_reward)
 
 # 分析奖励组件
-mean_reward = np.mean(total_rewards)
 with open('test_evaluations.txt', 'a') as f:
     f.write(f"\n=== 奖励组件分析 ===\n")
-    f.write(f"总奖励 - 平均: {mean_reward:.3f}, 标准差: {np.std(total_rewards):.3f}")
-
-with open('reward_model_scores.txt', 'a') as score_file:
-    score_file.write(f"{model_name},{mean_reward:.3f}\n")
+    if episode_rewards:
+        f.write(f"总奖励 - 平均: {np.mean(episode_rewards):.3f}, 标准差: {np.std(episode_rewards):.3f}")
+    else:
+        f.write("总奖励数据不足，无法计算统计量。")
 
 print("转换完成，内容已写入 test_evaluations.txt")
 
 
-Visualization.save_data_and_plot(data=total_rewards,  # 记录步数(能被50整除)的单个reward
-                                 filename='every_50_steps_reward', 
-                                 xlabel='every 50 steps', 
-                                 ylabel='every 50 steps reward')
-Visualization.save_data_and_plot(data=episode_rewards,  # 记录每个episode的总reward
-                                 filename='every_episode_reward', 
-                                 xlabel='every episode', 
-                                 ylabel='every episode reward')
-Visualization.save_data_and_plot(data=cumulative_rewards,  # 记录每步累加reward
-                                 filename='cumulative_reward', 
-                                 xlabel='every step', 
-                                 ylabel='cumulative reward for agent')
+if step_reward_samples:
+    Visualization.save_data_and_plot(data=step_reward_samples,  # 记录步数(能被50整除)的单个reward
+                                     filename='every_50_steps_reward',
+                                     xlabel='every 50 steps',
+                                     ylabel='per-step reward sample')
+
+if episode_rewards:
+    Visualization.save_data_and_plot(data=episode_rewards,  # 记录每个episode的总reward
+                                     filename='every_episode_reward',
+                                     xlabel='every episode',
+                                     ylabel='every episode total reward')
+
+    Visualization.save_data_and_plot(data=compute_moving_average(episode_rewards, window_size=5),
+                                     filename='every_episode_reward_moving_avg',
+                                     xlabel='every episode',
+                                     ylabel='moving average episode reward')
+
+if cumulative_rewards:
+    Visualization.save_data_and_plot(data=cumulative_rewards,  # 记录每步累加reward
+                                     filename='cumulative_reward',
+                                     xlabel='every step',
+                                     ylabel='cumulative reward for agent')
 
 env.close()

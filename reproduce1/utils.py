@@ -3,6 +3,25 @@ import json
 import yaml
 import shutil
 
+def compute_moving_average(data, window_size=5):
+    """Compute a trailing moving average with the given window size."""
+    if not data:
+        return []
+
+    window_size = max(1, window_size)
+    moving_averages = []
+    window_sum = 0.0
+
+    for index, value in enumerate(data):
+        window_sum += value
+        if index >= window_size:
+            window_sum -= data[index - window_size]
+        effective_window = min(window_size, index + 1)
+        moving_averages.append(window_sum / effective_window)
+
+    return moving_averages
+
+
 def _compact_trajectories(jsonl_text: str, max_steps=50):
     """
     输入: load_truncated_trajectories 返回的多行 JSON 字符串（每行是一个 episode 的 JSON 列表）

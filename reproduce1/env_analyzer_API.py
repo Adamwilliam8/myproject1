@@ -9,6 +9,7 @@ import yaml
 import json
 import os
 
+print("env_analyzer_API.py")
 ### 导入 配置文件config.yaml
 OPENAI_CONFIG = yaml.load(open('config.yaml'), Loader=yaml.FullLoader)
 client = OpenAI(api_key=OPENAI_CONFIG['DEEPSEEK_KEY'],
