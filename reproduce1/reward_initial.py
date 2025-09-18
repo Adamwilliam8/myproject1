@@ -33,8 +33,10 @@ You should write a reward function to achieve the **Description**. The informati
 - Output the code block only. **Do not output anything else outside the code block**.
 - You should include **sufficient comments** in your reward function to explain your thoughts, the objective and **implementation details**. The implementation can be specified to a specific line of code.
 - Ensure the reward value will not be extremely large or extremely small which makes the reward meaningless.
-- If you need to import packages or define helper functions, MUST define functions or import packages in reward function.
+- If you need to import packages or define helper functions or use Class, MUST define functions or import packages or import Class in reward function.
+- If you need to use any classes, types or modules (e.g. ControlledVehicle, torch), you MUST import them firstly in reward function.
 - DO NOT use any undefined functions or variables or unimported packages in the reward function.
+- Do Not use any undefined or unimported class or name in the reward function.
 - Your reward function should use useful variables from the **Environment code** as inputs.
 - Make sure code is compatible with TorchScript (e.g., **use torch tensor instead of numpy array**) since reward function will be decorated with @torch.jit.script.
 - Make sure any new tensor or variable you introduce is on the same device as the input tensors.

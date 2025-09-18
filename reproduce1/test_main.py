@@ -108,7 +108,6 @@ while step_count < max_steps:
     episode_rewards.append(episode_reward)
 
 # 分析奖励组件
-mean_reward = np.mean(total_rewards)
 with open('test_evaluations.txt', 'a') as f:
     f.write(f"\n=== 奖励组件分析 ===\n")
     if episode_rewards:
