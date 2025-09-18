@@ -29,10 +29,16 @@ You should write a reward function to achieve the **Description**. The informati
 - Output the code block only. **Do not output anything else outside the code block**.
 - You should include **sufficient comments** in your reward function to explain your thoughts, the objective and **implementation details**. The implementation can be specified to a specific line of code.
 - Ensure the reward value will not be extremely large or extremely small which makes the reward meaningless.
-- If you need to import packages (e.g. math, numpy) or define helper functions, define them at the beginning of the function. Do not use unimported packages and undefined functions.
+- If you need to import packages or define helper functions or use Class, MUST define functions or import packages or import Class in reward function.
+- If you need to use any classes, types or modules (e.g. ControlledVehicle, torch), you MUST import them firstly in reward function.
+- DO NOT use any undefined functions or variables or unimported packages in the reward function.
+- Do Not use any undefined or unimported class or name in the reward function.
 - Your reward function should use useful variables from the **Environment code** as inputs.
-- Make sure code is compatible with TorchScript (e.g., use torch tensor instead of numpy array) since reward function will be decorated with @torch.jit.script
+- Make sure code is compatible with TorchScript (e.g., **use torch tensor instead of numpy array**) since reward function will be decorated with @torch.jit.script.
 - Make sure any new tensor or variable you introduce is on the same device as the input tensors.
+- MUST include a minimal self-test function inside the same code block named `_reward_self_test()` that constructs a minimal dummy object with the same attribute names used by `_reward` (e.g. `vehicle`, `config`, `on_road`), calls `_reward` once, and ensures it runs without NameError/TypeError. The self-test should be guarded by comments and must NOT print large data (only return or raise on error).
+- The returned code block MUST be self-contained and runnable (no external file reads). If external libs are required (torch/numpy), include them in imports and use fallbacks or clear instructions in comments.
+- If the reward uses `torch` tensors, ensure device and dtype compatibility (add comments and convert scalars to tensors as needed). If using plain floats, prefer Python `min/max` or `numpy.clip` instead of `torch.clamp` on floats.
 
 ## Output Helpful Tips
 
@@ -53,6 +59,8 @@ Strictly follow the following format. **Do not output anything else outside the 
         # (import packages and define helper functions)
         ...
         return reward
+
+    def _reward_self_test(): ### minimal test (no external I/O)
 '''
 
 user_reward_initial="Now write a reward function. Then in each iteration, I will use the reward function to train the RL agent and test it in the environment. I will give you possible reasons for the failure found during the testing, and you should modify the reward function accordingly. **Do not output anything else outside the code block. Please double check the output code. Ensure there is no error. The variables or function used should be defined already.**"
